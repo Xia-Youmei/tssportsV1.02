@@ -1,0 +1,13 @@
+Package: tssportsV1.02
+Type: Package
+Title: It integrates tsRNA feature extraction, differential analysis and extensive visualization functions in one.
+Version: 0.1.0
+Author: "Youmei Xia"
+Maintainer: The package maintainer <xiayoumei666@163.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/Xia-Youmei/tssportsV1.02
+BugReports: https://github.com/Xia-Youmei/tssportsV1.02/issues

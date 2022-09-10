@@ -1,0 +1,26 @@
+{
+    "id": "5C738CD0",
+    "path": "E:/life/02Build_R_bao/02learn/tssportsV1.02/R/combine_read_counts_from_sportsV1.1.R",
+    "project_path": "R/combine_read_counts_from_sportsV1.1.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1662822419053.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "15,10",
+        "scrollLine": "9"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1662653745,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1662653745,
+    "read_only": false,
+    "read_only_alternatives": []
+}

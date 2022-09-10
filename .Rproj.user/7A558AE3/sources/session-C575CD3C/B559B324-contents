@@ -1,0 +1,89 @@
+# Youmei Xia
+# 2022-8-26 - 2022-9-4
+#可实现完全自动化
+
+#a dictionary
+rm(list=ls()) #清除变量
+# getwd() #获取当前的工作目录
+setwd("E:/life/02Build_R_bao/07test/output_txt/sportstestV1.0/output/") #指定工作目录
+
+library(tidyverse)  #管道%>%
+library(stringr)  #正则表达式
+library(stringi) 
+
+#批量读取文件夹中内容
+filelist = list.files(pattern = "*_output.txt$")
+collapse_miRNA = lapply (filelist,function(x)read.table(x,sep = "\t",check.names = F,stringsAsFactors = F,header = T))  #lapply函数 对列表、数据框数据集进行循环,输入为列表;function()指令来命名和创建函数
+
+
+#--------------1.批量实现截取字符串为文件名-------------
+#library(stringr)
+filelist = list.files(pattern = "*.txt$")
+cha1<-c(filelist)#这是8个字符串，每个字符串里面都包含数字，考虑如何把数字提取出来
+
+col1<-str_extract_all(cha1,"\\d")#得到字符串列表，每个元素对应每个字符串的数字，但是不是你想象的那样
+
+#具体形式是这样的：如23，得到的是"2" "3"，所以该怎样把它变成我们想要的数字23是个问题，解决方法如下：
+
+i<-1
+while(i<=length(col1)){
+  if(length(col1[[i]])==0) col1<-col1[-i] else i<-i+1#这一步是考虑把没有数字的字符串对应的列表元素删掉，比如说"e"
+} 
+col11<-numeric(length(col1))
+for(i in 1:length(col1)){
+  l1<-length(col1[[i]])
+  l11<-c()
+  for(j in 1:l1)
+    l11<-paste(l11,col1[[i]][j],sep="")#将列表的每个元素连接起来，比如"2" "3"就变成了字符串"23"
+  col11[i]<-as.numeric(l11)#再将链接好的字符串进行数值化
+}  
+
+col11<-col11[!duplicated(col11)]#有的数字在处理之后，即将字母去掉之后会有所重复，这步是向量去重处理（不需要去重的请忽略哈）
+col11
+
+#---------------------2.批量处理-3p-5p文件求和reads
+#提取出含有关键词的行
+mat <- "((-3p)$|(-5p)$|miR)"
+for(i in 1:length(collapse_miRNA)){
+  #按;分隔字符串，stri_reverse是stringi包的函数
+  y=lapply(stri_split_regex(stri_reverse(collapse_miRNA[[i]]$Annotation), pattern = '[;\\s]+', n = 150), stri_reverse) 
+  mi <- list() #存储变换后的y值
+  for(j in 1:length(y)){
+    mi[j] <- list(str_subset(y[[j]],mat))
+  }
+  #... 
+  #将含有-3p-5p的注释分隔开成不同列
+  mi <- mi[!duplicated(mi)]  #去重复列表
+  mi <- do.call(rbind,mi)  #将行内字符串分开变成最长列的matrix
+  mi <- c(mi[,1])       #将含有-3p-5p的注释合并成一列
+  mi <- mi[!duplicated(mi)] 
+  mi <- as.data.frame(mi)  #将mi转为数据框,列转行，list 的每个元素作为一列
+  #将reads加和，此步较慢
+  a <- list()
+  collapse_miRNA35p <- list()
+  for (j in 1:length(mi[,])) {
+    a[j] <- list(stringr::str_which(collapse_miRNA[[i]]$Annotation,mi[j,]))  #查出行索引位置
+    x <- a[[j]]
+    collapse_miRNA35p[j] <- list(sum(collapse_miRNA[[i]]$Reads[unlist(x)]))  #查出根据上面索引加和的值,unlist将list转为vector，
+  }
+  #list 的每个元素作为一行，行转行
+  collapse_miRNA35p <- do.call(rbind.data.frame, collapse_miRNA35p) # do.call 函数是将前面函数的参数放在一个list中使用，正好l是这样一个list,它表示该函数的多个参数，而不是第一个参数是这个list
+  collapse_miRNA35p <- data.frame(mi,collapse_miRNA35p) #两个数据框合并
+  #按照源文件格式保存xx + "\t" + xx + "\tNA\t" + str(collapse_miRNA[xx]) + "\tYes\t" + xx + "\n",cbind会自动填充常数
+  collapse_miRNA35p1 <- cbind( collapse_miRNA35p[1],collapse_miRNA35p[1],"\tNA\t", collapse_miRNA35p[2],"\tYes\t", collapse_miRNA35p[1])
+  cnames=c("ID","Sequence", "Length", "Reads", "Match_Genome", "Annotation")
+  colnames(collapse_miRNA35p1)=cnames
+  #保存有reads的文件
+  collapse_miRNA[[i]] <- rbind(collapse_miRNA[[i]],collapse_miRNA35p1)
+  #--------------------------批量保存collapse_miRNA文件
+  filename2 <- paste('SRR',col11,'_output_collapse_miRNA.txt',sep = '')
+  for(j in 1:length(collapse_miRNA)){
+    re=collapse_miRNA[[j]][,]  #取re文件内的行和列
+    #filename含有列表命名
+    write.table(re,filename2[j],sep = "\t",row.names = FALSE,quote = F)  #row.names=False表示无序号行名
+  }
+}
+
+
+
+
